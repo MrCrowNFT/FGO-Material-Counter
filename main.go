@@ -1,13 +1,12 @@
 package main
 
 import (
-	"log"
+	_"log"
 	"strconv"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
-	_ "fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 )
 
@@ -48,5 +47,20 @@ func main(){
 
 // Helper function to add a material row dynamically
 func addMaterial(material string, rows *fyne.Container){
+	count := 0
 
+	//create widget for the row
+	materalLabel := widget.NewLabel(material + ": " + strconv.Itoa(count))
+	addButtom := widget.NewButton("Add", func() {
+		// Increment the counter
+		count ++
+		// Update the label
+		materalLabel.SetText(material + ": " + strconv.Itoa(count))
+	})
+
+	// Add the row to the list
+	rows.Add(container.NewHBox(
+		materalLabel,
+		addButtom,
+	))
 }
