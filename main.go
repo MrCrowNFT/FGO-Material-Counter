@@ -1,9 +1,14 @@
 package main
 
-import(
+import (
+	"log"
+	"strconv"
+
+	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
-    _"fyne.io/fyne/v2/container"
-    "fyne.io/fyne/v2/widget"
+	"fyne.io/fyne/v2/container"
+	_ "fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/widget"
 )
 
 func main(){
@@ -11,17 +16,37 @@ func main(){
 	counter := app.New()
 	window := counter.NewWindow("FGO Material Counter")
 
-	// Mapping to track the material as they get added
-	material := make(map[string]int)
-
-	// Will use this widget to display the materials and the count
-	materialList := widget.NewLabel("")
+	// Container to hold all materials rows
+	materialRows := container.NewVBox()
 
 	// Input the material name
 	materialInput := widget.NewEntry()
 	materialInput.SetPlaceHolder("Enter material name")
 
+	// Add buttom
+	addMaterialButtom := widget.NewButton("Add Material", func() {
+		name := materialInput.Text
 
-	window.SetContent(widget.NewLabel("FGO Counter"))
+		// Add the material to the list
+		if name != ""{
+			addMaterial(name, materialRows)
+			// Reset the input
+			materialInput.SetText("")
+		}
+	})
+
+	mainLayout := container.NewVBox(
+		container.NewHBox(materialInput, addMaterialButtom),
+		widget.NewLabel("Materials:"),
+		materialRows,
+	)
+
+
+	window.SetContent(mainLayout)
 	window.ShowAndRun()
+}
+
+// Helper function to add a material row dynamically
+func addMaterial(material string, rows *fyne.Container){
+
 }
