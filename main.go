@@ -1,9 +1,9 @@
 package main
 
 import (
-	_"log"
+	"os"
 	"strconv"
-
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
@@ -11,8 +11,12 @@ import (
 )
 
 func main(){
+	// Set a valid locale
+	os.Setenv("LANG", "en_US.UTF-8") 
+
 	// Create new app and window
 	counter := app.New()
+	counter.Settings().SetTheme(theme.DarkTheme()) // Apply dark theme
 	window := counter.NewWindow("FGO Material Counter")
 
 	// Container to hold all materials rows
@@ -34,6 +38,7 @@ func main(){
 		}
 	})
 
+	// Layout
 	mainLayout := container.NewVBox(
 		container.NewHBox(materialInput, addMaterialButtom),
 		widget.NewLabel("Materials:"),
@@ -42,6 +47,7 @@ func main(){
 
 
 	window.SetContent(mainLayout)
+	window.Resize(fyne.NewSize(400, 400))
 	window.ShowAndRun()
 }
 
