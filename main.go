@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/csv"
-	"log"
 	"os"
 	"strconv"
 	"fmt"
@@ -10,6 +9,7 @@ import (
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
+	"fyne.io/fyne/v2/layout"
 )
 
 type Material struct{
@@ -33,9 +33,11 @@ func main(){
 	// Input the material name
 	materialInput := widget.NewEntry()
 	materialInput.SetPlaceHolder("Enter material name")
+	materialInputContainer := container.New(layout.NewGridWrapLayout(fyne.NewSize(300, 40)), materialInput) // Proper resizing
 
-	// Add buttom
-	addMaterialButtom := widget.NewButton("Add Material", func() {
+
+	// Add material function
+	addMaterialHandler := func() {
 		name := materialInput.Text
 
 		// Add the material to the list
@@ -49,7 +51,17 @@ func main(){
 
 			// Reset the input
 			materialInput.SetText("")
-		}
+	}
+	}
+
+	// Trigger adding material o pressing enter
+	materialInput.OnSubmitted = func(content string) {
+		addMaterialHandler()
+	}
+
+	// Add buttom
+	addMaterialButtom := widget.NewButton("Add Material", func() {
+		addMaterialHandler()
 	})
 
 	// Export buttom to save data into a csv file
@@ -63,7 +75,7 @@ func main(){
 	})
 
 	// Layout
-	inputArea := container.NewHBox(materialInput, addMaterialButtom)
+	inputArea := container.NewHBox(materialInputContainer, addMaterialButtom)
 	mainLayout := container.NewVBox(
 		inputArea,
 		widget.NewLabel("Materials:"),
@@ -83,9 +95,10 @@ func addMaterial(material Material, rows *fyne.Container, materials *[]Material)
 
 	//create widget for the row
 	materalLabel := widget.NewLabel(material.Name + ": " + strconv.Itoa(count))
-	addButtom := widget.NewButton("Add", func() {
+	
+	updateCount := func(increment int) {
 		// Increment the counter
-		count ++
+		count += increment
 		// Update the label
 		materalLabel.SetText(material.Name + ": " + strconv.Itoa(count))
 
@@ -96,12 +109,18 @@ func addMaterial(material Material, rows *fyne.Container, materials *[]Material)
 				break
 			} 
 		}
-	})
+	}
+
+	addButton := widget.NewButton("+1", func() { updateCount(1) })
+	addFiveButton := widget.NewButton("+5", func() { updateCount(5) })
+	addTenButton := widget.NewButton("+10", func() { updateCount(10) })
 
 	// Add the row to the list
 	rows.Add(container.NewHBox(
 		materalLabel,
-		addButtom,
+		addButton,
+		addFiveButton,
+		addTenButton,
 	))
 }
 
