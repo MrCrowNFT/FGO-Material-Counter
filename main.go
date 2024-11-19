@@ -1,14 +1,21 @@
 package main
 
 import (
+	"encoding/csv"
+	"log"
 	"os"
 	"strconv"
-	"fyne.io/fyne/v2/theme"
+	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 )
+
+type Material struct{
+	Name string
+	Count int
+}
 
 func main(){
 	// Set a valid locale
@@ -16,8 +23,9 @@ func main(){
 
 	// Create new app and window
 	counter := app.New()
-	counter.Settings().SetTheme(theme.DarkTheme()) // Apply dark theme
 	window := counter.NewWindow("FGO Material Counter")
+
+	var materials []Material
 
 	// Container to hold all materials rows
 	materialRows := container.NewVBox()
@@ -32,17 +40,35 @@ func main(){
 
 		// Add the material to the list
 		if name != ""{
-			addMaterial(name, materialRows)
+			// Append added material to the mapping
+			newMaterial := Material{Name: name, Count: 0}
+			materials = append(materials, newMaterial)
+
+			// Add row
+			addMaterial(newMaterial, materialRows, &materials)
+
 			// Reset the input
 			materialInput.SetText("")
 		}
 	})
 
+	// Export buttom to save data into a csv file
+	exportToCSVButtom := widget.NewButton("Export to csv", func() {
+		err := exportToCSV("materials.csv", materials)
+		if err != nil {
+			fmt.Println("Error exporting to CSV:", err)
+		} else {
+			fmt.Println("Data successfully exported to materials.csv")
+		}
+	})
+
 	// Layout
+	inputArea := container.NewHBox(materialInput, addMaterialButtom)
 	mainLayout := container.NewVBox(
-		container.NewHBox(materialInput, addMaterialButtom),
+		inputArea,
 		widget.NewLabel("Materials:"),
 		materialRows,
+		exportToCSVButtom,
 	)
 
 
@@ -52,16 +78,24 @@ func main(){
 }
 
 // Helper function to add a material row dynamically
-func addMaterial(material string, rows *fyne.Container){
-	count := 0
+func addMaterial(material Material, rows *fyne.Container, materials *[]Material){
+	count := material.Count
 
 	//create widget for the row
-	materalLabel := widget.NewLabel(material + ": " + strconv.Itoa(count))
+	materalLabel := widget.NewLabel(material.Name + ": " + strconv.Itoa(count))
 	addButtom := widget.NewButton("Add", func() {
 		// Increment the counter
 		count ++
 		// Update the label
-		materalLabel.SetText(material + ": " + strconv.Itoa(count))
+		materalLabel.SetText(material.Name + ": " + strconv.Itoa(count))
+
+		// Update the count in the slice
+		for i := range *materials{
+			if (*materials)[i].Name == material.Name {
+				(*materials)[i].Count = count
+				break
+			} 
+		}
 	})
 
 	// Add the row to the list
@@ -69,4 +103,31 @@ func addMaterial(material string, rows *fyne.Container){
 		materalLabel,
 		addButtom,
 	))
+}
+
+func exportToCSV(filename string, materials []Material)(err error){
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	// Write header row
+	err = writer.Write([]string{"Material", "Count"})
+	if err != nil{
+		return err
+	}
+
+	// Write data into csv
+	for _, material := range materials {
+		err := writer.Write([]string{material.Name, strconv.Itoa(material.Count)})
+		if err != nil{
+			return err
+		}
+	}
+
+	return nil
 }
